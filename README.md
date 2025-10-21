@@ -3,7 +3,7 @@ Django Rest Framework ORJSON Renderer
 
 [![DRF ORJSON Renderer Tests](https://github.com/brianjbuck/drf_orjson_renderer/actions/workflows/main.yml/badge.svg)](https://github.com/brianjbuck/drf_orjson_renderer/actions/workflows/main.yml)
 
-`drf_orjson_renderer` is JSON renderer and parser for Django Rest Framework
+`drf_orjson_renderer2` is JSON renderer and parser for Django Rest Framework
 using the [orjson](https://github.com/ijl/orjson) library. Backed by
 [Rust](https://www.rust-lang.org/), orjson is safe, correct and _fast_. ⚡️
 
@@ -20,14 +20,14 @@ You get:
 
 ## Installation
 
-`pip install drf_orjson_renderer`
+`pip install drf-orjson-renderer2`
 
 You can then set the `ORJSONRenderer` class as your default renderer in your `settings.py`
 
 ```Python
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": (
-        "drf_orjson_renderer.renderers.ORJSONRenderer",
+        "drf_orjson_renderer2.renderers.ORJSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ),
 }
@@ -48,7 +48,7 @@ Also you can set the `ORJSONParser` class as your default parser in your `settin
 ```Python
 REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": (
-        "drf_orjson_renderer.parsers.ORJSONParser",
+        "drf_orjson_renderer2.parsers.ORJSONParser",
     ),
 }
 ```

@@ -15,7 +15,7 @@ dev = [
 ]
 
 [project]
-name = "drf_orjson_renderer"
+name = "drf-orjson-renderer2"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
@@ -62,14 +62,14 @@ test = [
 ]
 
 [project.urls]
-"Homepage" = "https://pypi.org/project/drf_orjson_renderer/"
-"Bug Reports" = "https://github.com/DEKHTIARJonathan/drf_orjson_renderer/issues"
-"Source" = "https://github.com/DEKHTIARJonathan/drf_orjson_renderer"
+"Homepage" = "https://pypi.org/project/drf-orjson-renderer2/"
+"Bug Reports" = "https://github.com/OpenSpeleo/drf-orjson-renderer2/issues"
+"Source" = "https://github.com/OpenSpeleo/drf-orjson-renderer2"
 
 [tool.pytest.ini_options]
 testpaths = ["tests/"]
-addopts = "-vvv --cov=drf_orjson_renderer --cov-report=term-missing"
-# addopts = "-vvv --cov=drf_orjson_renderer --cov-report=term-missing --capture=no"
+addopts = "-vvv --cov=drf_orjson_renderer2 --cov-report=term-missing"
+# addopts = "-vvv --cov=drf_orjson_renderer2 --cov-report=term-missing --capture=no"
 
 [tool.isort]
 indent = '    '

@@ -21,8 +21,8 @@ from rest_framework.settings import api_settings
 from rest_framework.utils.serializer_helpers import ReturnDict
 from rest_framework.utils.serializer_helpers import ReturnList
 
-from drf_orjson_renderer.parsers import ORJSONParser
-from drf_orjson_renderer.renderers import ORJSONRenderer
+from drf_orjson_renderer2.parsers import ORJSONParser
+from drf_orjson_renderer2.renderers import ORJSONRenderer
 
 if TYPE_CHECKING:
     from typing import Any

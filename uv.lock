@@ -313,7 +313,7 @@ wheels = [
 ]
 
 [[package]]
-name = "drf-orjson-renderer"
+name = "drf-orjson-renderer2"
 source = { editable = "." }
 dependencies = [
     { name = "django" },
