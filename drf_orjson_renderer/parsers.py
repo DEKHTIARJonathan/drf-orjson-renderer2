@@ -1,10 +1,14 @@
-from typing import Any, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import orjson
 from django.conf import settings
 from rest_framework.exceptions import ParseError
 from rest_framework.parsers import BaseParser
 
+if TYPE_CHECKING:
+    from typing import Any
 
 __all__ = ["ORJSONParser"]
 
@@ -19,7 +23,7 @@ class ORJSONParser(BaseParser):
     def parse(
         self,
         stream,
-        media_type: Optional[Any] = None,
+        media_type: Any = None,
         parser_context: Any = None,
     ) -> Any:
         """
@@ -42,5 +46,6 @@ class ORJSONParser(BaseParser):
         try:
             data: Any = stream.read().decode(encoding)
             return orjson.loads(data)
+
         except orjson.JSONDecodeError as exc:
-            raise ParseError(f"JSON parse error - {exc}")
+            raise ParseError("JSON parse error") from exc

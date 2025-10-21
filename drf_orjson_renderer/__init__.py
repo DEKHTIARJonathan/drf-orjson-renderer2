@@ -4,4 +4,4 @@
 "Django RestFramework JSON Renderer Backed by orjson"
 """
 
-__version__ = "1.7.3"
+__version__ = "2.0.0"

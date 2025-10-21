@@ -1,23 +1,31 @@
+from __future__ import annotations
+
 import datetime
 import json
 import unittest
 import uuid
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
+from collections import defaultdict
 from decimal import Decimal
 from io import BytesIO
+from typing import TYPE_CHECKING
 
-import numpy
+import numpy as np
 import orjson
 import pytest
-from django.db.models import TextChoices
 from django.utils.functional import lazy
 from rest_framework import status
-from rest_framework.exceptions import ErrorDetail, ParseError
+from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import ParseError
 from rest_framework.settings import api_settings
-from rest_framework.utils.serializer_helpers import ReturnDict, ReturnList
+from rest_framework.utils.serializer_helpers import ReturnDict
+from rest_framework.utils.serializer_helpers import ReturnList
 
 from drf_orjson_renderer.parsers import ORJSONParser
 from drf_orjson_renderer.renderers import ORJSONRenderer
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 class IterObj:
@@ -25,7 +33,7 @@ class IterObj:
         self.value = value
 
     def __iter__(self):
-        for x in range(self.value):
+        for _ in range(self.value):
             yield self.value
 
 
@@ -60,13 +68,13 @@ DATA_PARAMS = [
 
 
 @pytest.mark.parametrize(
-    "test_input,expected,coerce_decimal",
+    ("test_input", "expected", "coerce_decimal"),
     DATA_PARAMS,
     ids=[type(item[0]) for item in DATA_PARAMS],
 )
 def test_built_in_default_method(test_input, expected, coerce_decimal):
     """Ensure that the built-in default method works for all data types."""
-    api_settings.COERCE_DECIMAL_TO_STRING = True if coerce_decimal else False
+    api_settings.COERCE_DECIMAL_TO_STRING = coerce_decimal
     result = ORJSONRenderer().render(test_input)
     assert result == expected
 
@@ -86,22 +94,20 @@ class RendererTestCase(unittest.TestCase):
         assert self.renderer.media_type == "application/json"
 
     def test_basic_data_structures_rendered_correctly(self):
-
         rendered = self.renderer.render(self.data)
         reloaded = orjson.loads(rendered)
 
-        self.assertEqual(reloaded, self.data)
+        assert reloaded == self.data
 
     def test_renderer_works_correctly_when_media_type_and_context_provided(
         self,
     ):
-
         rendered = self.renderer.render(
             data=self.data, media_type="application/json", renderer_context={}
         )
         reloaded = orjson.loads(rendered)
 
-        self.assertEqual(reloaded, self.data)
+        assert reloaded == self.data
 
     def test_renderer_works_correctly_with_browsable_api(self):
         """
@@ -109,23 +115,27 @@ class RendererTestCase(unittest.TestCase):
         by the BrowsableAPIRenderer.
         """
         rendered = self.renderer.render(
-            data=self.data, media_type="text/html", renderer_context=None,
+            data=self.data,
+            media_type="text/html",
+            renderer_context=None,
         )
 
-        self.assertEqual(rendered.decode(), json.dumps(self.data, indent=2))
+        assert rendered.decode() == json.dumps(self.data, indent=2)
 
         rendered = self.renderer.render(
-            data=self.data, media_type="text/html; q=1.0", renderer_context=None,
+            data=self.data,
+            media_type="text/html; q=1.0",
+            renderer_context=None,
         )
 
-        self.assertEqual(rendered.decode(), json.dumps(self.data, indent=2))
+        assert rendered.decode() == json.dumps(self.data, indent=2)
 
     def test_renderer_works_correctly_with_browsable_api_with_datetime(self):
         """
         When using the built-in json when called by the BrowsableAPIRenderer,
         ensure that native datetime.datetime objects are serialized correctly.
         """
-        now = datetime.datetime.now()
+        now = datetime.datetime.now()  # noqa: DTZ005
         data = {"now": now}
         rendered = self.renderer.render(
             data=data, media_type="text/html", renderer_context=None
@@ -133,20 +143,20 @@ class RendererTestCase(unittest.TestCase):
         reloaded = orjson.loads(rendered)
         now_formatted = now.isoformat()
 
-        self.assertEqual(reloaded, {"now": now_formatted})
+        assert reloaded == {"now": now_formatted}
 
     def test_renderer_works_correctly_with_browsable_api_with_date(self):
         """
         When using the built-in json when called by the BrowsableAPIRenderer,
         ensure that native datetime.date objects are serialized correctly.
         """
-        today = datetime.date.today()
+        today = datetime.date.today()  # noqa: DTZ011
         data = {"today": today}
         rendered = self.renderer.render(
             data=data, media_type="text/html", renderer_context=None
         )
         reloaded = orjson.loads(rendered)
-        self.assertEqual(reloaded, {"today": today.isoformat()})
+        assert reloaded == {"today": today.isoformat()}
 
     def test_renderer_works_correctly_with_application_json(self):
         """
@@ -160,7 +170,7 @@ class RendererTestCase(unittest.TestCase):
         )
         reloaded = orjson.loads(rendered)
 
-        self.assertEqual(reloaded, self.data)
+        assert reloaded == self.data
 
     def test_renderer_works_correctly_with_default_dict(self):
         """
@@ -173,7 +183,7 @@ class RendererTestCase(unittest.TestCase):
         )
         reloaded = orjson.loads(rendered)
 
-        self.assertEqual(reloaded, d)
+        assert reloaded == d
 
     def test_renderer_works_correctly_with_error_detail(self):
         """
@@ -185,52 +195,53 @@ class RendererTestCase(unittest.TestCase):
             media_type="application/json",
             renderer_context={},
         )
-        self.assertEqual(rendered.decode(), '"Test"')
+        assert rendered.decode() == '"Test"'
 
     def test_renderer_works_correctly_with_numpy_array(self):
         """
-        Ensure that numpy.array is serialized correctly.
+        Ensure that np.array is serialized correctly.
         """
-        data = numpy.array([1])
+        data = np.array([1])
         rendered = self.renderer.render(
             data=data, media_type="application/json", renderer_context={}
         )
         reloaded = orjson.loads(rendered)
 
-        self.assertEqual(reloaded, data)
+        assert reloaded == data
 
     def test_renderer_works_correctly_with_numpy_int(self):
         """
-        Ensure that numpy.integer is serialized correctly.
+        Ensure that np.integer is serialized correctly.
         """
-        data = numpy.int32(0)
+        data = np.int32(0)
         rendered = self.renderer.render(
             data=data, media_type="application/json", renderer_context={}
         )
         reloaded = orjson.loads(rendered)
 
-        self.assertEqual(reloaded, data)
+        assert reloaded == data
 
     def test_renderer_works_correctly_with_numpy_floating(self):
         """
-        Ensure that numpy.floating is serialized correctly.
+        Ensure that np.floating is serialized correctly.
         """
-        data = numpy.float32(0.0)
+        data = np.float32(0.0)
         rendered = self.renderer.render(
             data=data, media_type="application/json", renderer_context={}
         )
         reloaded = orjson.loads(rendered)
 
-        self.assertEqual(reloaded, data)
+        assert reloaded == data
 
     def test_renderer_works_with_provided_default(self):
         """
         Ensure that a user can pass a default function to the renderer.
         """
 
-        def default(obj):
+        def default(obj: Any) -> Any:
             if isinstance(obj, dict):
                 return dict(obj)
+            return obj
 
         data = OrderedDict({"value": "test"})
         rendered = self.renderer.render(
@@ -240,7 +251,7 @@ class RendererTestCase(unittest.TestCase):
         )
         reloaded = orjson.loads(rendered)
 
-        self.assertEqual(reloaded, dict(data))
+        assert reloaded == dict(data)
 
     def test_renderer_works_with_provided_default_is_none(self):
         """
@@ -256,7 +267,7 @@ class RendererTestCase(unittest.TestCase):
         )
         reloaded = orjson.loads(rendered)
 
-        self.assertEqual(reloaded, dict(data))
+        assert reloaded == dict(data)
 
     def test_renderer_works_with_provided_default_is_none_raises_error(self):
         """
@@ -265,7 +276,7 @@ class RendererTestCase(unittest.TestCase):
         raise a JSONEncodeError.
         """
         data = {"this is a set", "that orjson cannot serialize"}
-        with self.assertRaises(orjson.JSONEncodeError):
+        with pytest.raises(orjson.JSONEncodeError):
             self.renderer.render(
                 data=data,
                 media_type="application/json",
@@ -274,31 +285,31 @@ class RendererTestCase(unittest.TestCase):
 
     def test_built_in_renderer_works_correctly_with_numpy_int(self):
         """
-        Ensure that numpy.int is serialized correctly with Python's
+        Ensure that np.int is serialized correctly with Python's
         built-in json module.
         """
-        data = numpy.int32(0)
+        data = np.int32(0)
         rendered = self.renderer.render(
             data=data,
             media_type="text/html",
         )
         reloaded = orjson.loads(rendered)
 
-        self.assertEqual(reloaded, data)
+        assert reloaded == data
 
     def test_built_in_renderer_works_correctly_with_numpy_floating(self):
         """
-        Ensure that numpy.floating is serialized correctly with Python's
+        Ensure that np.floating is serialized correctly with Python's
         built-in json module.
         """
-        data = numpy.float32(0.0)
+        data = np.float32(0.0)
         rendered = self.renderer.render(
             data=data,
             media_type="text/html",
         )
         reloaded = orjson.loads(rendered)
 
-        self.assertEqual(reloaded, data)
+        assert reloaded == data
 
     def test_built_in_renderer_works_correctly_with_none(self):
         """
@@ -306,10 +317,11 @@ class RendererTestCase(unittest.TestCase):
         """
         data = None
         rendered = self.renderer.render(
-            data=data, media_type="application/json",
+            data=data,
+            media_type="application/json",
         )
 
-        self.assertEqual(b"", rendered)
+        assert rendered == b""
 
 
 class ParserTestCase(unittest.TestCase):
@@ -327,7 +339,7 @@ class ParserTestCase(unittest.TestCase):
         dumped = orjson.dumps(self.data)
         parsed = self.parser.parse(BytesIO(dumped))
 
-        self.assertEqual(parsed, self.data)
+        assert parsed == self.data
 
     def test_parser_works_correctly_when_media_type_and_context_provided(self):
         dumped = orjson.dumps(self.data)
@@ -337,23 +349,16 @@ class ParserTestCase(unittest.TestCase):
             parser_context={},
         )
 
-        self.assertEqual(parsed, self.data)
+        assert parsed == self.data
 
     def test_parser_raises_decode_error(self):
         """
         Ensure that the rest_framework.errors.ParseError is raised when sending
         invalid JSON from the client.
         """
-        with self.assertRaises(ParseError):
+        with pytest.raises(ParseError):
             self.parser.parse(
                 stream=BytesIO(b'{"value": NaN}'),
                 media_type="application/json",
                 parser_context={},
             )
-
-
-if __name__ == "__main__":
-    from django.conf import settings
-
-    settings.configure()
-    unittest.main()

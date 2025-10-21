@@ -1,13 +1,16 @@
+from __future__ import annotations
+
 import functools
 import operator
-from typing import Any, Optional
+from typing import TYPE_CHECKING
 
-import django
 import orjson
 from rest_framework.renderers import BaseRenderer
 from rest_framework.settings import api_settings
 from rest_framework.utils.encoders import JSONEncoder
 
+if TYPE_CHECKING:
+    from typing import Any
 
 __all__ = ["ORJSONRenderer"]
 
@@ -33,7 +36,7 @@ class ORJSONRenderer(BaseRenderer):
     def render(
         self,
         data: Any,
-        media_type: Optional[str] = None,
+        media_type: str | None = None,
         renderer_context: Any = None,
     ) -> bytes:
         """
