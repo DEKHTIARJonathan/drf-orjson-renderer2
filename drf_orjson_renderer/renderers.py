@@ -1,20 +1,12 @@
 import functools
 import operator
-import uuid
-from decimal import Decimal
 from typing import Any, Optional
 
 import django
 import orjson
-
-if django.VERSION < (5, 0):
-    from django.db.models.enums import ChoicesMeta as ChoicesType
-elif django.VERSION <= (6, 0):
-    from django.db.models.enums import ChoicesType
-
-from django.utils.functional import Promise
 from rest_framework.renderers import BaseRenderer
 from rest_framework.settings import api_settings
+from rest_framework.utils.encoders import JSONEncoder
 
 
 __all__ = ["ORJSONRenderer"]
@@ -30,39 +22,13 @@ class ORJSONRenderer(BaseRenderer):
     html_media_type: str = "text/html"
     json_media_type: str = "application/json"
     media_type: str = json_media_type
+    encoder_class = JSONEncoder
 
     options = functools.reduce(
         operator.or_,
         api_settings.user_settings.get("ORJSON_RENDERER_OPTIONS", ()),
         orjson.OPT_SERIALIZE_NUMPY,
     )
-
-    @staticmethod
-    def default(obj: Any) -> Any:
-        """
-        When orjson doesn't recognize an object type for serialization it passes
-        that object to this function which then converts the object to its
-        native Python equivalent.
-
-        :param obj: Object of any type to be converted.
-        :return: native python object
-        """
-
-        if isinstance(obj, dict):
-            return dict(obj)
-        elif isinstance(obj, list):
-            return list(obj)
-        elif isinstance(obj, Decimal):
-            if api_settings.COERCE_DECIMAL_TO_STRING:
-                return str(obj)
-            else:
-                return float(obj)
-        elif isinstance(obj, (str, uuid.UUID, Promise, ChoicesType)):
-            return str(obj)
-        elif hasattr(obj, "tolist"):
-            return obj.tolist()
-        elif hasattr(obj, "__iter__"):
-            return list(item for item in obj)
 
     def render(
         self,
@@ -101,7 +67,7 @@ class ORJSONRenderer(BaseRenderer):
         # Don't do that here because you will lose the ability to pass `None`
         # to ORJSON.
         if "default_function" not in renderer_context:
-            default = self.default
+            default = self.encoder_class().default
         else:
             default = renderer_context["default_function"]
 
